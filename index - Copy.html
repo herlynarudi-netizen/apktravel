@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Booking Resta Travel</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ 
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; margin: 0; padding: 10px; padding-bottom: 90px; }
+        .embed-container { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); max-width: 800px; margin: auto; overflow: hidden; min-height: 80vh; }
+        .swiper-square { width: 100%; height: auto; border-radius: 16px; margin-bottom: 24px; aspect-ratio: 1 / 1; }
+        .swiper-slide img { display: block; width: 100%; height: 100%; object-fit: cover; }
+        .seat-overlay { position: absolute; background-color: transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; z-index: 10; }
+        .seat-overlay:hover:not(.selected):not(.booked) { background-color: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.5); }
+        .seat-overlay.selected { background-color: rgba(37, 99, 235, 0.65); border: 2px solid #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.8); }
+        .seat-overlay.booked { background-color: rgba(239, 68, 68, 0.7); border: 2px solid #dc2626; cursor: not-allowed; pointer-events: none; }
+        .tab-content { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .tab-content.active { display: block; }
+        .step-container { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        input[list]::-webkit-calendar-picker-indicator { display: none !important; }
+        
+        /* Loading Overlay Style */
+        .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 99999; backdrop-blur: 5px; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div id="loader-gateway" class="loading-overlay">
+        <div class="bg-white p-8 rounded-3xl text-center max-w-xs shadow-2xl">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+            <h3 class="font-bold text-slate-800">Menghubungkan Kasir...</h3>
+            <p class="text-xs text-slate-500 mt-2">Mohon tunggu, jangan tutup halaman ini.</p>
+        </div>
+    </div>
+ 
+    <div class="embed-container p-5 md:p-8 relative">
+        <div id="tab-home" class="tab-content active pb-6">
+            <div class="relative overflow-hidden mb-0 bg-slate-900 -mx-5 -mt-5 md:-mx-8 md:-mt-8">
+                <div class="absolute top-0 left-0 w-full z-20 flex justify-between items-center p-5 bg-gradient-to-b from-black/70 to-transparent">
+                    <div class="bg-white rounded-full px-3 py-1.5 flex items-center shadow-lg"><img src="logo3.png" alt="Resta Travel" class="h-5" onerror="this.src='https://via.placeholder.com/100x30/1e40af/ffffff?text=Resta'"></div>
+                    <div class="flex items-center gap-2 bg-white/20 backdrop-blur-md rounded-full pr-1 pl-3 py-1 border border-white/30 cursor-pointer" onclick="switchTab('profile')"><span class="text-white text-xs font-bold truncate max-w-[100px]" id="header-greeting">Hi, Penumpang!</span><div class="w-7 h-7 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-inner"><i class="fas fa-user text-[10px]"></i></div></div>
+                </div>
+                <div class="swiper mySwiper aspect-square w-full mb-0 rounded-none swiper-square">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide"><img src="Toyota Hiace.png" style="object-fit: cover; object-position: center; opacity: 0.95;" onerror="this.src='https://via.placeholder.com/600'"></div>
+                        <div class="swiper-slide"><img src="reborn-travel.png" style="object-fit: cover; object-position: center; opacity: 0.95;" onerror="this.src='https://via.placeholder.com/600'"></div>
+                        <div class="swiper-slide"><img src="resta-travel-car (2).png" style="object-fit: cover; object-position: center; opacity: 0.95;" onerror="this.src='https://via.placeholder.com/600'"></div>
+                    </div>
+                    <div class="swiper-pagination mb-8"></div> 
+                </div>
+                <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black/60 to-transparent z-10 pointer-events-none"></div>
+            </div>
+
+            <div id="step-1" class="step-container px-1 md:px-3 relative z-20">
+                <div class="bg-white p-5 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] -mt-16 relative z-20 border border-slate-100">
+                    <div class="flex items-center justify-center gap-2 mb-6 border-b border-slate-100 pb-4"><div class="bg-orange-100 px-2 py-1 rounded"><i class="fas fa-ticket-alt text-orange-600 text-sm"></i></div><h2 class="text-base font-bold text-slate-800">Cari Tiket Travel</h2></div>
+
+                    <div class="border border-slate-200 rounded-2xl p-4 mb-4 relative bg-slate-50/50">
+                        <div class="flex items-center gap-3 mb-2 relative">
+                            <i class="fas fa-map-marker-alt text-slate-400 text-sm w-4 text-center"></i>
+                            <div class="flex-1 relative">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wide">Asal Keberangkatan</label>
+                                <input type="text" id="asal" autocomplete="off" onfocus="showDropdown('asal')" onblur="hideDropdown('asal')" oninput="filterDropdown('asal')" class="w-full bg-transparent font-bold text-sm text-slate-800 outline-none border-b border-slate-200 pb-1 focus:border-blue-500 transition-colors" placeholder="Ketik kota asal (Cth: Palembang)">
+                                <div id="dropdown-asal" class="hidden absolute top-full left-0 w-full bg-white shadow-2xl border border-slate-200 rounded-xl mt-2 z-[60] max-h-48 overflow-y-auto custom-scrollbar"></div>
+                            </div>
+                        </div>
+                        <div onclick="swapRute()" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center shadow-md cursor-pointer transition-all active:scale-90 z-10 border-2 border-white"><i class="fas fa-exchange-alt rotate-90 text-white text-sm"></i></div>
+                        <div class="flex items-center gap-3 mt-4 relative">
+                            <i class="fas fa-bullseye text-slate-400 text-sm w-4 text-center"></i>
+                            <div class="flex-1 relative">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wide">Tujuan Akhir</label>
+                                <input type="text" id="tujuan" autocomplete="off" onfocus="showDropdown('tujuan')" onblur="hideDropdown('tujuan')" oninput="filterDropdown('tujuan')" class="w-full bg-transparent font-bold text-sm text-slate-800 outline-none border-b border-slate-200 pb-1 focus:border-blue-500 transition-colors" placeholder="Ketik kota tujuan (Cth: Lampung)">
+                                <div id="dropdown-tujuan" class="hidden absolute top-full left-0 w-full bg-white shadow-2xl border border-slate-200 rounded-xl mt-2 z-[60] max-h-48 overflow-y-auto custom-scrollbar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="border border-slate-200 p-3 rounded-2xl bg-white focus-within:border-blue-500 transition-colors"><label class="block text-[10px] font-bold text-slate-400 mb-0.5">Tanggal</label><input type="date" id="tanggal" onchange="calculatePrice()" class="w-full bg-transparent font-bold text-xs text-slate-800 outline-none"></div>
+                        <div class="border border-slate-200 p-3 rounded-2xl bg-white focus-within:border-blue-500 transition-colors"><label class="block text-[10px] font-bold text-slate-400 mb-0.5">Jam</label><select id="jam" class="w-full bg-transparent font-bold text-xs text-slate-800 outline-none cursor-pointer"><option value="">Pilih Jam</option><option value="11:00 Siang">11:00 Siang</option><option value="15:00 Sore">15:00 Sore</option><option value="20:00 Malam">20:00 Malam</option></select></div>
+                    </div>
+                    <div id="rute-kosong" class="hidden bg-red-50 text-red-600 p-3 rounded-2xl text-center text-[11px] font-bold mb-4 border border-red-100"><i class="fas fa-exclamation-circle mr-1"></i> Rute tidak ditemukan atau harga belum tersedia.</div>
+                    <div id="price-box" class="hidden bg-orange-50 border border-orange-100 p-3 rounded-2xl flex justify-between items-center mb-5 shadow-sm"><div><span class="text-[10px] text-orange-600 font-bold uppercase block mb-0.5">Estimasi Harga</span><span id="single-price" class="font-black text-orange-600 text-lg">Rp 0</span></div><span id="tuslah-indicator" class="hidden bg-orange-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase shadow-sm animate-pulse">Tuslah</span></div>
+                    <button id="btn-cari" onclick="goToStep(2)" class="w-full bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95 flex justify-center items-center gap-2">Lanjut Pilih Kursi</button>
+                </div>
+                <div class="mt-10 px-2 mb-6 relative z-10"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold text-slate-800">Berita Terbaru</h3></div><div id="banner-container" class="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory hide-scrollbar"><div class="text-center py-4 text-xs text-slate-400 w-full"><i class="fas fa-spinner fa-spin mr-2"></i>Memuat Promo...</div></div></div>
+            </div>
+
+            <div id="step-2" class="step-container hidden px-1 md:px-3 relative z-20">
+                <div class="bg-white p-5 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] -mt-16 relative z-20 border border-slate-100">
+                    <div class="flex items-center justify-center gap-2 mb-4 border-b border-slate-100 pb-4"><div class="bg-blue-100 px-2 py-1 rounded"><i class="fas fa-chair text-blue-600 text-sm"></i></div><h2 class="text-base font-bold text-slate-800">Pilih Armada & Kursi</h2></div>
+                    <div class="grid grid-cols-2 gap-4 mb-5"><label class="cursor-pointer"><input type="radio" name="armada_radio" value="HiAce" onchange="changeArmada()" checked class="sr-only peer"><div class="rounded-xl border-2 peer-checked:border-blue-600 peer-checked:bg-blue-50 overflow-hidden shadow-sm"><img src="Premio.png" class="w-full h-24 object-cover border-b" onerror="this.src='https://via.placeholder.com/200x100?text=HiAce'"><div class="p-2 text-center font-bold text-sm">Toyota HiAce</div></div></label><label class="cursor-pointer"><input type="radio" name="armada_radio" value="Innova" onchange="changeArmada()" class="sr-only peer"><div class="rounded-xl border-2 peer-checked:border-blue-600 peer-checked:bg-blue-50 overflow-hidden shadow-sm"><img src="reborn.png" class="w-full h-24 object-cover border-b" onerror="this.src='https://via.placeholder.com/200x100?text=Innova'"><div class="p-2 text-center font-bold text-sm">Innova Reborn</div></div></label></div>
+                    <div id="hiace-container" class="relative max-w-[400px] mx-auto bg-slate-900 p-4 rounded-3xl mb-4"><img src="k.png" class="w-full opacity-90" onerror="this.src='https://via.placeholder.com/400x600?text=Denah+Kursi'"><div class="seat-overlay" data-seat="1" style="top: 24%; left: 9.5%; width: 17%; height: 10%;" onclick="toggleSeat(this, 1)"></div><div class="seat-overlay" data-seat="4" style="top: 36.5%; left: 29.5%; width: 17%; height: 10%;" onclick="toggleSeat(this, 4)"></div><div class="seat-overlay" data-seat="3" style="top: 36.5%; left: 52%; width: 17%; height: 10%;" onclick="toggleSeat(this, 3)"></div><div class="seat-overlay" data-seat="2" style="top: 36.5%; left: 74.5%; width: 17%; height: 10%;" onclick="toggleSeat(this, 2)"></div><div class="seat-overlay" data-seat="7" style="top: 50.5%; left: 9.5%; width: 17%; height: 10%;" onclick="toggleSeat(this, 7)"></div><div class="seat-overlay" data-seat="6" style="top: 50.5%; left: 52%; width: 17%; height: 10%;" onclick="toggleSeat(this, 6)"></div><div class="seat-overlay" data-seat="5" style="top: 50.5%; left: 74.5%; width: 17%; height: 10%;" onclick="toggleSeat(this, 5)"></div><div class="seat-overlay" data-seat="10" style="top: 65%; left: 9.5%; width: 17%; height: 10%;" onclick="toggleSeat(this, 10)"></div><div class="seat-overlay" data-seat="9" style="top: 65%; left: 52%; width: 17%; height: 10%;" onclick="toggleSeat(this, 9)"></div><div class="seat-overlay" data-seat="8" style="top: 65%; left: 74.5%; width: 17%; height: 10%;" onclick="toggleSeat(this, 8)"></div><div class="seat-overlay" data-seat="14" style="top: 79%; left: 9.5%; width: 17%; height: 10%;" onclick="toggleSeat(this, 14)"></div><div class="seat-overlay" data-seat="13" style="top: 79%; left: 29.5%; width: 17%; height: 10%;" onclick="toggleSeat(this, 13)"></div><div class="seat-overlay" data-seat="12" style="top: 79%; left: 52%; width: 17%; height: 10%;" onclick="toggleSeat(this, 12)"></div><div class="seat-overlay" data-seat="11" style="top: 79%; left: 74.5%; width: 17%; height: 10%;" onclick="toggleSeat(this, 11)"></div></div>
+                    <div id="innova-container" class="relative max-w-[400px] mx-auto bg-slate-900 p-4 rounded-3xl mb-4 hidden"><img src="kursi innova.png" class="w-full" onerror="this.src='https://via.placeholder.com/400x600?text=Denah'"><div class="seat-overlay" data-seat="1" style="top: 32%; left: 21%; width: 22%; height: 15%;" onclick="toggleSeat(this, 1)"></div><div class="seat-overlay" data-seat="2" style="top: 54%; left: 21%; width: 18%; height: 13%;" onclick="toggleSeat(this, 2)"></div><div class="seat-overlay" data-seat="3" style="top: 54%; left: 41%; width: 18%; height: 13%;" onclick="toggleSeat(this, 3)"></div><div class="seat-overlay" data-seat="4" style="top: 54%; left: 61%; width: 18%; height: 13%;" onclick="toggleSeat(this, 4)"></div><div class="seat-overlay" data-seat="5" style="top: 72%; left: 29%; width: 20%; height: 14%;" onclick="toggleSeat(this, 5)"></div><div class="seat-overlay" data-seat="6" style="top: 72%; left: 51%; width: 20%; height: 14%;" onclick="toggleSeat(this, 6)"></div></div>
+                    <div class="flex items-center gap-4 mb-4 text-xs font-bold text-slate-500 justify-center"><div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-500 rounded-sm"></div> Terisi</div><div class="flex items-center gap-1"><div class="w-3 h-3 bg-blue-600 rounded-sm"></div> Dipilih</div><div class="flex items-center gap-1"><div class="w-3 h-3 border border-slate-300 rounded-sm"></div> Kosong</div></div>
+                    <div class="bg-slate-800 p-4 rounded-xl text-white flex justify-between font-bold shadow-lg"><div class="text-xs">Kursi: <span id="seat-list">-</span></div><div class="text-xl text-blue-400" id="total-price">Rp 0</div></div>
+                    <div class="flex gap-2 mt-4"><button onclick="goToStep(1)" class="flex-1 bg-slate-200 py-3 rounded-xl font-bold active:scale-95 transition-all">Kembali</button><button onclick="goToStep(3)" class="flex-[2] bg-blue-600 text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition-all">Isi Data Penumpang</button></div>
+                </div>
+            </div>
+     
+            <div id="step-3" class="step-container hidden px-1 md:px-3 relative z-20">
+                <div class="bg-white p-5 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] -mt-16 relative z-20 border border-slate-100">
+                    <div class="flex items-center justify-center gap-2 mb-4 border-b border-slate-100 pb-4"><div class="bg-green-100 px-2 py-1 rounded"><i class="fas fa-user-edit text-green-600 text-sm"></i></div><h2 class="text-base font-bold text-slate-800">Detail Penumpang</h2></div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border space-y-3"><input type="text" id="nama" placeholder="Nama Lengkap Penumpang" class="w-full p-3 border rounded-xl text-sm shadow-sm outline-none focus:border-green-500"><div class="relative"><span class="absolute left-3 top-3 font-bold text-sm text-slate-500">+62</span><input type="tel" id="hp" placeholder="813xxxx" class="w-full pl-12 p-3 border rounded-xl text-sm shadow-sm outline-none focus:border-green-500"></div><textarea id="alamat_jemput" placeholder="Titik Jemput Detail (Misal: Jl. Sudirman)" class="w-full p-3 border rounded-xl text-sm h-20 outline-none focus:border-green-500"></textarea><textarea id="alamat_antar" placeholder="Tujuan Antar Detail" class="w-full p-3 border rounded-xl text-sm h-20 outline-none focus:border-green-500"></textarea></div>
+                    <div class="mt-4 bg-blue-50/50 p-4 rounded-2xl border border-blue-100"><label class="block text-xs font-bold text-blue-800 uppercase mb-2"><i class="fas fa-ticket-alt mr-1"></i> Voucher Promo</label><div class="flex gap-2"><input type="text" id="kode_voucher" placeholder="Ketik Kode" class="w-full p-3 border border-blue-200 rounded-xl shadow-sm uppercase font-bold text-sm outline-none"><button id="btn-cek-voucher" onclick="cekVoucher()" class="bg-blue-600 text-white font-bold px-4 rounded-xl text-sm transition hover:bg-blue-700">Pakai</button></div><p id="pesan-voucher" class="text-[11px] mt-2 font-bold hidden"></p></div>
+                    
+                    <div class="mt-6 p-4 bg-orange-50 border border-orange-100 rounded-2xl">
+                        <div class="flex justify-between text-xs font-bold text-slate-600 mb-1"><span>Total Tiket:</span><span id="label-total">Rp 0</span></div>
+                        <div class="flex justify-between text-lg font-black text-orange-600"><span>DP 30%:</span><span id="label-dp">Rp 0</span></div>
+                        <p class="text-[9px] text-orange-400 font-bold mt-1 uppercase italic">*Sisa dibayar di loket saat berangkat.</p>
+                    </div>
+
+                    <div class="flex gap-2 mt-6"><button onclick="goToStep(2)" class="flex-1 bg-slate-200 py-4 rounded-xl font-bold shadow transition active:scale-95">Kembali</button><button onclick="prosesBayarDuitku()" class="flex-[2] bg-orange-500 text-white font-bold py-4 rounded-xl shadow-xl transition active:scale-95 flex flex-col items-center"><span>BAYAR DP SEKARANG</span><span class="text-[9px] opacity-80 uppercase tracking-widest">(QRIS / Bank / Ritel)</span></button></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-tiket" class="tab-content py-4 px-2"><h2 class="text-xl font-bold mb-4 text-center">Tiket Saya</h2><div id="ticket-list-container" class="space-y-4"></div><div id="empty-ticket-state" class="text-center py-20 text-slate-400 font-bold hidden">Belum ada pesanan aktif.</div></div>
+
+        <div id="tab-profile" class="tab-content py-6 px-4 md:px-6 bg-slate-50 min-h-screen">
+            <div id="auth-container" class="text-center bg-white p-6 rounded-3xl shadow-sm border mt-10"><div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fas fa-lock"></i></div><h2 class="text-lg font-bold mb-2">Masuk ke Akun Anda</h2><div id="form-login" class="space-y-3"><input type="tel" id="login_hp" placeholder="Nomor WhatsApp" class="w-full p-3.5 bg-slate-50 border rounded-xl text-sm outline-none"><input type="password" id="login_pass" placeholder="Kata Sandi" class="w-full p-3.5 bg-slate-50 border rounded-xl text-sm outline-none"><button onclick="actionLogin()" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl shadow-md">Masuk</button><button onclick="toggleAuthMode('register')" class="text-blue-600 font-bold text-xs mt-2 block w-full">Daftar Akun Baru</button></div><div id="form-register" class="hidden space-y-3"><input type="text" id="reg_nama" placeholder="Nama Lengkap" class="w-full p-3.5 bg-slate-50 border rounded-xl text-sm outline-none"><input type="tel" id="reg_hp" placeholder="No WhatsApp Aktif" class="w-full p-3.5 bg-slate-50 border rounded-xl text-sm outline-none"><input type="password" id="reg_pass" placeholder="Buat Sandi" class="w-full p-3.5 bg-slate-50 border rounded-xl text-sm outline-none"><button onclick="actionRegister()" class="w-full bg-green-500 text-white font-bold py-3.5 rounded-xl shadow-md">Buat Akun</button><button onclick="toggleAuthMode('login')" class="text-slate-500 font-bold text-xs mt-2 block w-full">Sudah punya akun? Masuk</button></div></div>
+            <div id="profile-container" class="hidden"><h2 class="text-xl font-bold text-slate-800 mb-6">Akun Saya</h2><div class="flex items-center gap-4 mb-6 bg-white p-4 rounded-2xl shadow-sm border relative z-10"><div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl shadow-inner relative overflow-hidden"><i class="fas fa-user z-10 relative"></i></div><div class="flex-1 overflow-hidden relative"><h3 class="font-bold text-lg text-slate-800 truncate" id="profile_name">Nama</h3><p id="profile_phone" class="text-sm text-slate-500 font-medium"></p></div><button onclick="openEditProfile()" class="w-8 h-8 bg-slate-50 hover:bg-slate-100 rounded-full text-slate-400 border transition-colors"><i class="fas fa-pen text-xs"></i></button></div><div class="bg-gradient-to-br from-[#1e40af] to-[#3b82f6] rounded-2xl p-5 text-white shadow-lg mb-6 relative overflow-hidden z-10 border border-white/10"><div class="absolute -right-4 -top-4 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div><div class="absolute -left-4 -bottom-4 w-24 h-24 bg-blue-400/20 rounded-full blur-xl"></div><div class="relative z-10 mb-4 border-b border-white/10 pb-3 flex justify-between items-center"><div><p class="text-[10px] text-blue-200 uppercase tracking-widest font-bold mb-1 opacity-80">Status Member</p><p class="font-black text-lg flex items-center gap-2"><i class="fas fa-medal text-yellow-400"></i> CLASSIC</p></div><div class="text-right"><i class="fas fa-gem text-3xl text-white/20"></i></div></div><div id="loyalty-routes-container" class="space-y-4 relative z-10 max-h-48 overflow-y-auto pr-1 hide-scrollbar"><p class="text-xs text-blue-200 text-center py-2"><i class="fas fa-spinner fa-spin mr-2"></i>Memuat poin...</p></div><div class="bg-blue-900/30 p-3 rounded-xl mt-5 relative z-10 text-center"><p class="text-[9px] text-blue-100 italic leading-snug" id="loyalty-text-info">*Memuat aturan promo...</p></div></div><div class="bg-white rounded-2xl shadow-sm border mb-6 overflow-hidden relative z-10"><a href="#" onclick="openVoucherModal(); return false;" class="flex items-center justify-between p-4 border-b active:bg-slate-50 transition-colors"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center"><i class="fas fa-ticket-alt text-xs"></i></div><span class="font-bold text-sm text-slate-700">Voucher Promo Saya</span></div><i class="fas fa-chevron-right text-slate-300 text-xs"></i></a><a href="https://wa.me/6281312357574" target="_blank" class="flex items-center justify-between p-4 border-b active:bg-slate-50 transition-colors"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fas fa-headset text-xs"></i></div><div class="flex flex-col"><span class="font-bold text-sm text-slate-700">Pusat Bantuan WA</span></div></div><i class="fas fa-chevron-right text-slate-300 text-xs"></i></a><a href="#" onclick="openTNCModal(); return false;" class="flex items-center justify-between p-4 active:bg-slate-50 transition-colors"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-slate-50 text-slate-600 flex items-center justify-center"><i class="fas fa-file-contract text-xs"></i></div><span class="font-bold text-sm text-slate-700">Syarat & Ketentuan</span></div><i class="fas fa-chevron-right text-slate-300 text-xs"></i></a></div><button onclick="actionLogout()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3.5 rounded-xl border border-red-100 flex justify-center items-center gap-2 active:scale-95 transition-all"><i class="fas fa-sign-out-alt"></i> Keluar Akun</button></div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] bg-white border-t flex justify-around p-3 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50">
+        <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center text-blue-600 font-bold transform scale-110"><i class="fas fa-home"></i><span class="text-[10px]">Beranda</span></button><button onclick="switchTab('tiket')" id="nav-tiket" class="flex flex-col items-center text-slate-400 hover:text-blue-500"><i class="fas fa-ticket-alt"></i><span class="text-[10px]">Tiket</span></button><button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-slate-400 hover:text-blue-500"><i class="fas fa-user"></i><span class="text-[10px]">Profil</span></button>
+    </nav>
+
+    <div id="promo-modal" class="fixed inset-0 hidden items-center justify-center p-4 bg-black/80 z-[9999] backdrop-blur-sm transition-all"><div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative"><button onclick="closePromoModal()" class="absolute top-4 right-4 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center z-10"><i class="fas fa-times"></i></button><img id="promo-modal-img" src="" class="w-full aspect-square object-cover"><div class="p-5"><h3 id="promo-modal-title" class="font-bold text-lg text-slate-800 mb-2 leading-tight"></h3><p id="promo-modal-desc" class="text-sm text-slate-600 text-justify leading-relaxed"></p><button onclick="closePromoModal()" class="mt-5 w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md">Tutup</button></div></div></div>
+    <div id="ticket-modal" class="fixed inset-0 hidden items-center justify-center p-4 bg-black/90 z-[9999] overflow-y-auto"><div class="w-full max-w-[360px] my-auto pt-6 pb-24"><div id="ticket-content" class="bg-white rounded-3xl relative pb-6 w-full mx-auto shadow-2xl overflow-hidden"><div class="absolute left-[-15px] top-[150px] w-[30px] h-[30px] bg-black/90 rounded-full z-20"></div><div class="absolute right-[-15px] top-[150px] w-[30px] h-[30px] bg-black/90 rounded-full z-20"></div><div class="bg-gradient-to-b from-[#1e40af] to-[#3b82f6] text-white p-6 text-center pt-8 pb-12 relative border-b border-white/10"><div class="absolute top-4 right-4 bg-white/20 border border-white/30 rounded-lg px-3 py-1 text-[10px] font-bold backdrop-blur-sm shadow-sm">KODE: <span id="t-kode" class="text-yellow-300"></span></div><div class="flex justify-center items-center mb-2 mt-4"><img src="logo3.png" class="h-12 object-contain" onerror="this.src='https://via.placeholder.com/200x50/1e40af/ffffff?text=Logo'"></div><p class="text-[10px] font-medium tracking-widest italic mt-1 opacity-90">"PROFESIONAL DAN TEPAT WAKTU"</p><div class="mt-4 inline-flex items-center gap-2 bg-white/20 border border-white/30 rounded-full px-5 py-2 text-xs font-bold backdrop-blur-sm"><i class="fab fa-whatsapp text-green-400 text-lg"></i> WA: 0813-1235-7574</div></div><div class="px-6 pt-2 pb-2 bg-white relative z-0"><div class="bg-white/50 border border-blue-100 rounded-2xl p-4 text-center mb-6 -mt-8 relative z-10 shadow-sm backdrop-blur-md"><p class="text-[9px] text-blue-500 font-bold uppercase tracking-widest mb-2 font-medium">Rute Perjalanan</p><div class="flex justify-center items-center gap-4 font-black text-blue-900 text-xl uppercase tracking-wider"><span id="t-asal" class="flex-1 text-right leading-tight"></span><span class="text-slate-300 flex-shrink-0">-</span><span id="t-tujuan" class="flex-1 text-left leading-tight"></span></div></div><div class="space-y-4 text-xs mt-2 px-1"><div class="flex items-start gap-4"><i class="fas fa-user text-slate-400 w-4 text-center text-sm"></i><div class="flex-1 flex justify-between border-b border-slate-100 pb-2"><span class="text-slate-500">Nama</span><span id="t-nama" class="font-bold text-slate-800 text-right"></span></div></div><div class="flex items-start gap-4"><i class="far fa-calendar-alt text-slate-400 w-4 text-center text-sm"></i><div class="flex-1 flex justify-between border-b border-slate-100 pb-2"><span class="text-slate-500">Jadwal</span><span id="t-jadwal" class="font-bold text-slate-800 text-right"></span></div></div><div class="flex items-start gap-4"><i class="fas fa-chair text-slate-400 w-4 text-center text-sm"></i><div class="flex-1 flex justify-between border-b border-slate-100 pb-2"><span class="text-slate-500">Kursi</span><span id="t-kursi" class="font-bold text-slate-800 text-right"></span></div></div><div class="flex items-start gap-4"><i class="fas fa-mobile-alt text-slate-400 w-4 text-center text-sm"></i><div class="flex-1 flex justify-between border-b border-slate-100 pb-2"><span class="text-slate-500">Kontak</span><span id="t-hp" class="font-bold text-slate-800 text-right"></span></div></div><div class="flex items-start gap-4"><i class="fas fa-home text-slate-400 w-4 text-center text-sm"></i><div class="flex-1 flex justify-between border-b border-slate-100 pb-2"><span class="text-slate-500">Jemput</span><span id="t-jemput" class="font-bold text-slate-800 text-right w-2/3 leading-tight"></span></div></div><div class="flex items-start gap-4"><i class="far fa-building text-slate-400 w-4 text-center text-sm"></i><div class="flex-1 flex justify-between border-b border-slate-100 pb-2"><span class="text-slate-500">Antar</span><span id="t-antar" class="font-bold text-slate-800 text-right w-2/3 leading-tight"></span></div></div></div><div class="mt-8 border-2 border-dashed border-emerald-300 bg-emerald-50/50 rounded-2xl p-4 relative overflow-visible mx-2"><div class="flex justify-between items-center border-b border-emerald-200/50 pb-2 mb-2 text-xs"><span class="text-emerald-700 font-medium">Total</span><span id="t-harga-total" class="font-bold text-emerald-800">Rp 0</span></div><div class="flex justify-between items-center border-b border-emerald-200/50 pb-2 mb-2 text-xs"><span class="text-emerald-700 font-medium">DP (30%)</span><span id="t-dp" class="font-bold text-emerald-800">Rp 0</span></div><div class="text-center mt-3"><p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mb-1">Sisa Pelunasan</p><h3 id="t-sisa" class="text-2xl font-black text-emerald-700">Rp 0</h3></div><div id="t-stamp" class="absolute -right-4 top-[70%] -translate-y-1/2 -rotate-12 border-[3px] font-black text-xs px-3 py-1 rounded shadow-sm uppercase bg-white/90 backdrop-blur-sm">PROSES BAYAR</div></div></div></div><div class="mt-6 flex flex-col gap-3 px-1"><button id="download-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold text-sm w-full shadow-lg active:scale-95 transition-all">Download E-Ticket</button><button onclick="closeTicketModal()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold uppercase py-4 rounded-2xl text-xs shadow-md active:scale-95 transition-all">Tutup Tiket</button></div></div></div>
+    <div id="edit-profile-modal" class="fixed inset-0 hidden items-center justify-center p-4 bg-black/70 z-[9999]"><div class="bg-white rounded-3xl w-full max-sm p-6 shadow-xl"><h3 class="text-lg font-bold mb-4">Edit Profil</h3><label class="block text-xs font-bold mb-1">Nama Lengkap</label><input type="text" id="edit_nama" class="w-full p-3 border rounded-xl mb-3 text-sm outline-none focus:border-blue-500"><label class="block text-xs font-bold mb-1">Nomor WhatsApp</label><input type="tel" id="edit_hp" class="w-full p-3 border rounded-xl mb-5 text-sm bg-slate-50" disabled><div class="flex gap-2"><button onclick="closeEditProfile()" class="flex-1 bg-slate-200 py-3 rounded-xl font-bold">Batal</button><button onclick="saveProfile()" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg">Simpan</button></div></div></div>
+    <div id="voucher-modal" class="fixed inset-0 hidden items-end md:items-center justify-center p-4 md:p-0 bg-black/70 z-[9999] transition-all"><div class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-md p-6 max-h-[85vh] flex flex-col shadow-2xl relative"><div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold text-slate-800"><i class="fas fa-ticket-alt text-green-600 mr-2"></i>Voucher Aktif</h3><button onclick="closeVoucherModal()" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 flex items-center justify-center hover:bg-slate-200"><i class="fas fa-times"></i></button></div><div id="voucher-list" class="overflow-y-auto space-y-3 pr-2 pb-6"></div></div></div>
+    <div id="tnc-modal" class="fixed inset-0 hidden items-center justify-center p-4 bg-black/70 z-[9999]"><div class="bg-white rounded-3xl w-full max-w-md p-6 max-h-[85vh] flex flex-col shadow-2xl relative"><div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100"><h3 class="text-lg font-bold text-slate-800"><i class="fas fa-file-contract text-blue-600 mr-2"></i>Syarat & Ketentuan</h3><button onclick="closeTNCModal()" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 flex items-center justify-center"><i class="fas fa-times"></i></button></div><div class="overflow-y-auto pr-2 text-xs text-slate-600 space-y-3 leading-relaxed pb-4 text-justify"><p><strong>1. Pembelian Tiket & DP</strong><br>Wajib Uang Muka (DP) 30% via Gateway Duitku. Tiket tidak dapat dibatalkan.</p><p><strong>2. Keterlambatan</strong><br>Bersiap di titik jemput 30 menit sebelum keberangkatan.</p><p><strong>3. Bagasi</strong><br>Maksimal 1 Tas/Koper sedang.</p></div><button onclick="closeTNCModal()" class="w-full mt-2 bg-blue-600 text-white font-bold py-3.5 rounded-xl shadow-md">Saya Mengerti</button></div></div>
+ 
+    <script>
+        const supabaseUrl = 'https://dknvpaszoroqzzefjpxf.supabase.co';
+        const supabaseKey = 'sb_publishable_KC81HGAPvAK0DcARj6zguA_jD-jSMhb'; 
+        const db = supabase.createClient(supabaseUrl, supabaseKey);
+
+        const dataWilayah = { "Palembang": ["Palembang Kota", "Dermaga TAA", "Lubuk Linggau", "Pagaralam", "Sekayu"], "Lampung": ["Bandar Lampung", "Metro", "Pringsewu", "Tataan", "Kota Bumi"], "Jakarta": ["Jakarta", "Bogor", "Depok", "Tangerang", "Bekasi"], "Jambi": ["Jambi"], "Bengkulu": ["Bengkulu"], "Pekan Baru": ["Pekan Baru"] };
+        const baseMap = { "Metro": "Bandar Lampung", "Pringsewu": "Bandar Lampung", "Tataan": "Bandar Lampung", "Kota Bumi": "Bandar Lampung", "Bogor": "Jakarta", "Depok": "Jakarta", "Tangerang": "Jakarta", "Bekasi": "Jakarta" };
+ 
+        let normalPrices = { "Palembang Kota-Bandar Lampung": 250000, "Palembang Kota-Jakarta": 600000, "Palembang Kota-Jambi": 200000, "Bandar Lampung-Palembang Kota": 250000, "Bandar Lampung-Jakarta": 400000, "Bandar Lampung-Jambi": 450000, "Jambi-Palembang Kota": 200000, "Jambi-Bandar Lampung": 450000, "Jakarta-Bandar Lampung": 400000, "Jakarta-Palembang Kota": 600000, "Palembang Kota-Bengkulu": 300000, "Bengkulu-Palembang Kota": 300000, "Palembang Kota-Pekan Baru": 450000, "Pekan Baru-Palembang Kota": 450000, "Palembang Kota-Dermaga TAA": 70000, "Dermaga TAA-Palembang Kota": 70000, "Palembang Kota-Pagaralam": 250000, "Pagaralam-Palembang Kota": 250000, "Palembang Kota-Lubuk Linggau": 200000, "Lubuk Linggau-Palembang Kota": 200000, "Palembang Kota-Sekayu": 100000, "Sekayu-Palembang Kota": 100000 };
+        let tuslahPrices = { "Palembang Kota-Bandar Lampung": 350000, "Palembang Kota-Jakarta": 750000, "Palembang Kota-Jambi": 300000, "Bandar Lampung-Palembang Kota": 350000, "Bandar Lampung-Jakarta": 550000, "Bandar Lampung-Jambi": 550000, "Jambi-Palembang Kota": 300000, "Jambi-Bandar Lampung": 550000, "Jakarta-Bandar Lampung": 550000, "Jakarta-Palembang Kota": 750000, "Palembang Kota-Bengkulu": 350000, "Bengkulu-Palembang Kota": 350000, "Palembang Kota-Pekan Baru": 550000, "Pekan Baru-Palembang Kota": 550000, "Palembang Kota-Dermaga TAA": 150000, "Dermaga TAA-Palembang Kota": 150000, "Palembang Kota-Pagaralam": 300000, "Pagaralam-Palembang Kota": 300000, "Palembang Kota-Lubuk Linggau": 250000, "Lubuk Linggau-Palembang Kota": 250000, "Palembang Kota-Sekayu": 150000, "Sekayu-Palembang Kota": 150000 };
+
+        let selectedSeats = []; let unitPrice = 0; let currentStep = 1;
+        let finalTotal = 0; let finalDP = 0; let finalSisa = 0;
+        let diskonPerSeatAktif = 0; let kodeVoucherAktif = ""; let kuotaVoucherSisa = 0;
+
+        let targetPoinLoyalty = 10; let diskonPersenLoyalty = 50;
+        let setKumpulanKota = new Set(); 
+        const kotaUtama = ["Palembang Kota", "Bandar Lampung", "Jambi", "Jakarta", "Pekan Baru"];
+        const formatRupiah = (a) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(a);
+
+        for(let prov in dataWilayah) { dataWilayah[prov].forEach(kota => setKumpulanKota.add(kota)); }
+
+        function swapRute() { const inputAsal = document.getElementById('asal'); const inputTujuan = document.getElementById('tujuan'); const temp = inputAsal.value; inputAsal.value = inputTujuan.value; inputTujuan.value = temp; calculatePrice(); }
+        function showDropdown(type) { document.getElementById(`dropdown-${type}`).classList.remove('hidden'); filterDropdown(type); }
+        function hideDropdown(type) { setTimeout(() => { document.getElementById(`dropdown-${type}`).classList.add('hidden'); }, 200); }
+        function filterDropdown(type) {
+            const val = document.getElementById(type).value.trim().toLowerCase(); const box = document.getElementById(`dropdown-${type}`);
+            let cities = val === "" ? kotaUtama : Array.from(setKumpulanKota).filter(c => c.toLowerCase().includes(val));
+            if(cities.length === 0) { box.innerHTML = '<div class="p-3 text-xs text-slate-400 text-center font-medium">Kota tidak ditemukan</div>'; } 
+            else { box.innerHTML = cities.map(c => `<div onclick="selectCity('${type}', '${c}')" class="p-3 text-xs md:text-sm font-bold text-slate-700 hover:bg-blue-50 cursor-pointer border-b border-slate-50 last:border-0 flex items-center gap-2 transition-colors"><i class="fas fa-map-marker-alt text-slate-300"></i> ${c}</div>`).join(''); }
+        }
+        function selectCity(type, city) { document.getElementById(type).value = city; document.getElementById(`dropdown-${type}`).classList.add('hidden'); calculatePrice(); }
+
+        async function fetchTarifDinamis() { try { const { data, error } = await db.from('tarif_rute').select('*'); if(!error && data) { data.forEach(t => { let key = `${t.kota_asal}-${t.kota_tujuan}`; normalPrices[key] = t.harga_normal; tuslahPrices[key] = t.harga_tuslah; setKumpulanKota.add(t.kota_asal); setKumpulanKota.add(t.kota_tujuan); }); } } catch(e) {} }
+        async function fetchLoyaltySettings() { try { const { data, error } = await db.from('pengaturan_loyalty').select('*').limit(1).single(); if(data && !error) { targetPoinLoyalty = data.target_poin || 10; diskonPersenLoyalty = data.diskon_persen || 50; const infoEl = document.getElementById('loyalty-text-info'); if(infoEl) infoEl.innerHTML = `*Setiap ${targetPoinLoyalty} Kursi berhak mendapat 1 Voucher Diskon ${diskonPersenLoyalty}%.`; } } catch(e) {} }
+
+        function switchTab(t) { document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active')); document.getElementById('tab-' + t).classList.add('active'); document.querySelectorAll('nav button').forEach(x => { x.className = "flex flex-col items-center text-slate-400 hover:text-blue-500 transition-colors"; }); document.getElementById('nav-' + t).className = "flex flex-col items-center text-blue-600 transform scale-110 font-bold transition-all"; if(t === 'tiket') renderTickets(); if(t === 'profile') checkAuthStatus(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+        async function loadBanners() { try { const { data, error } = await db.from('banners').select('*').eq('aktif', true); const container = document.getElementById('banner-container'); if (!error && data && data.length > 0) { container.innerHTML = data.map(b => `<div class="flex-none snap-start rounded-2xl overflow-hidden shadow-sm border border-slate-200 bg-white relative cursor-pointer" style="width: 150px; min-width: 150px; height: 150px;" onclick="openPromoModal('${b.image_url}', '${b.title}', '${b.deskripsi.replace(/\n/g, '<br>')}')"><img src="${b.image_url}" class="w-full h-full object-cover"><div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3 pt-10"><span class="bg-orange-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider mb-1 inline-block">Promo</span><h4 class="text-white font-bold text-[10px] leading-snug line-clamp-2">${b.title}</h4></div></div>`).join('') + '<div class="w-2 flex-none"></div>'; } else { container.innerHTML = '<div class="text-center py-4 text-xs text-slate-400 w-full">Belum ada promo terbaru.</div>'; } } catch(e) {} }
+        function openPromoModal(img, title, desc) { document.getElementById('promo-modal-img').src = img; document.getElementById('promo-modal-title').innerText = title; document.getElementById('promo-modal-desc').innerHTML = desc; document.getElementById('promo-modal').classList.remove('hidden'); document.getElementById('promo-modal').classList.add('flex'); }
+        function closePromoModal() { document.getElementById('promo-modal').classList.add('hidden'); document.getElementById('promo-modal').classList.remove('flex'); }
+
+        function calculatePrice() {
+            const a = document.getElementById('asal').value.trim(); const b = document.getElementById('tujuan').value.trim(); const tgl = document.getElementById('tanggal').value; const btnCari = document.getElementById('btn-cari'); const notifKosong = document.getElementById('rute-kosong');
+            if(a === b && a !== "") { document.getElementById('tujuan').value = ""; return alert("Asal & Tujuan tidak boleh sama!"); }
+            const isTuslah = (tgl >= "2026-03-14" && tgl <= "2026-03-29"); unitPrice = 0;
+            if(a && b) {
+                let keySpesifik = `${a}-${b}`; let keyGrup = `${baseMap[a] || a}-${baseMap[b] || b}`;
+                let hargaNormalFinal = normalPrices[keySpesifik] || normalPrices[keyGrup] || 0; let hargaTuslahFinal = tuslahPrices[keySpesifik] || tuslahPrices[keyGrup] || 0;
+                unitPrice = isTuslah ? hargaTuslahFinal : hargaNormalFinal;
+                if(unitPrice > 0) { document.getElementById('price-box').classList.remove('hidden'); document.getElementById('single-price').innerText = formatRupiah(unitPrice); document.getElementById('tuslah-indicator').classList.toggle('hidden', !isTuslah); notifKosong.classList.add('hidden'); btnCari.classList.remove('opacity-50', 'cursor-not-allowed'); } 
+                else { document.getElementById('price-box').classList.add('hidden'); notifKosong.classList.remove('hidden'); btnCari.classList.add('opacity-50', 'cursor-not-allowed'); }
+            } else { document.getElementById('price-box').classList.add('hidden'); notifKosong.classList.add('hidden'); btnCari.classList.remove('opacity-50', 'cursor-not-allowed'); }
+            batalVoucher(); 
+        }
+
+        function toggleSeat(e, n) { if(e.classList.contains('booked')) return; if(e.classList.contains('selected')) { e.classList.remove('selected'); selectedSeats = selectedSeats.filter(s => s !== n); } else { e.classList.add('selected'); selectedSeats.push(n); } updateTotal(); }
+        function updateTotal() {
+            let baseTotal = selectedSeats.length * unitPrice; let kursiDapatDiskon = 0; let totalDiskon = 0;
+            if (kodeVoucherAktif) { kursiDapatDiskon = Math.min(selectedSeats.length, kuotaVoucherSisa); totalDiskon = diskonPerSeatAktif * kursiDapatDiskon; }
+            finalTotal = Math.max(0, baseTotal - totalDiskon); finalDP = finalTotal * 0.3; finalSisa = finalTotal - finalDP;
+            document.getElementById('total-price').innerText = formatRupiah(finalTotal); document.getElementById('seat-list').innerText = selectedSeats.length > 0 ? selectedSeats.join(', ') : '-';
+            
+            // Update Label Harga di Step 3
+            document.getElementById('label-total').innerText = formatRupiah(finalTotal);
+            document.getElementById('label-dp').innerText = formatRupiah(finalDP);
+
+            if (kodeVoucherAktif) { const pesanEl = document.getElementById('pesan-voucher'); if (kursiDapatDiskon < selectedSeats.length) pesanEl.innerText = `✔️ Voucher aktif! Diskon ${formatRupiah(diskonPerSeatAktif)} hanya berlaku untuk ${kursiDapatDiskon} kursi.`; else pesanEl.innerText = `✔️ Voucher berhasil! Diskon terpakai.`; }
+        }
+
+        async function cekVoucher() {
+            const kode = document.getElementById('kode_voucher').value.trim().toUpperCase(); const a = document.getElementById('asal').value; const b = document.getElementById('tujuan').value; const ruteSekarang = `${baseMap[a] || a}-${baseMap[b] || b}`; const pesanEl = document.getElementById('pesan-voucher'); const btn = document.getElementById('btn-cek-voucher'); const currUser = JSON.parse(localStorage.getItem('rt_curr') || '{}');
+            if (!kode) { batalVoucher(); return; } btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
+            try {
+                const { data: vData, error: vErr } = await db.from('vouchers').select('*').eq('kode_voucher', kode).single();
+                if (vErr || !vData) { btn.innerHTML = 'Pakai'; btn.disabled = false; return batalVoucher(`❌ Kode voucher tidak ditemukan/tidak aktif.`); }
+                if (vData.pemilik_hp && vData.pemilik_hp !== currUser.hp) { btn.innerHTML = 'Pakai'; btn.disabled = false; return batalVoucher(`❌ Voucher ini bersifat privat.`); }
+                const ruteBerlaku = vData.rute_berlaku ? vData.rute_berlaku.split(',').map(r => r.trim()) : [];
+                if (ruteBerlaku.length > 0 && !ruteBerlaku.includes(ruteSekarang)) { btn.innerHTML = 'Pakai'; btn.disabled = false; return batalVoucher(`❌ Voucher ini tidak berlaku untuk rute Anda.`); }
+                const { data: usedData, error: usedErr } = await db.from('pesanan').select('kursi').eq('kode_voucher', kode); if (usedErr) throw usedErr;
+                let totalKursiTerpakai = 0; if (usedData) { usedData.forEach(order => { if (order.kursi) totalKursiTerpakai += order.kursi.split(',').length; }); }
+                kuotaVoucherSisa = vData.kuota - totalKursiTerpakai; btn.innerHTML = 'Pakai'; btn.disabled = false;
+                if (kuotaVoucherSisa <= 0) { return batalVoucher(`❌ Maaf, kuota voucher ini sudah habis.`); }
+                diskonPerSeatAktif = vData.potongan_per_seat; kodeVoucherAktif = kode; pesanEl.className = "text-[11px] mt-2 font-bold text-green-600 block"; updateTotal();
+            } catch (err) { btn.innerHTML = 'Pakai'; btn.disabled = false; batalVoucher(`❌ Gagal mengecek voucher.`); }
+        }
+        function batalVoucher(pesan = "") { diskonPerSeatAktif = 0; kodeVoucherAktif = ""; kuotaVoucherSisa = 0; const pesanEl = document.getElementById('pesan-voucher'); pesanEl.innerText = pesan; pesanEl.className = "text-[11px] mt-2 font-bold text-red-500 " + (pesan ? "block" : "hidden"); updateTotal(); }
+
+        async function loadBookedSeats() {
+            const asal = document.getElementById('asal').value; const tujuan = document.getElementById('tujuan').value; const tgl = document.getElementById('tanggal').value; const jam = document.getElementById('jam').value; const armada = document.querySelector('input[name="armada_radio"]:checked').value;
+            document.querySelectorAll('.seat-overlay').forEach(el => { el.classList.remove('booked', 'selected'); }); selectedSeats = []; updateTotal();
+            try { const { data, error } = await db.from('pesanan').select('kursi').eq('kota_asal', asal).eq('kota_tujuan', tujuan).eq('tanggal_berangkat', tgl).eq('jam_berangkat', jam).eq('armada', armada); if (!error && data) { let bookedArray = []; data.forEach(order => { if (order.kursi) { const seats = order.kursi.split(',').map(s => s.trim()); bookedArray.push(...seats); } }); const containerId = armada === 'HiAce' ? 'hiace-container' : 'innova-container'; const container = document.getElementById(containerId); bookedArray.forEach(seatNumber => { const seatEl = container.querySelector(`[data-seat="${seatNumber}"]`); if(seatEl) seatEl.classList.add('booked'); }); } } catch (err) {}
+        }
+
+        async function goToStep(s) {
+            if(s === 2 && (!document.getElementById('asal').value || !document.getElementById('tujuan').value || !document.getElementById('jam').value)) return alert("Lengkapi rute & jam terlebih dahulu!");
+            if(s === 2 && unitPrice === 0) return alert("Maaf, rute yang Anda pilih belum tersedia.");
+            if(s === 2) { await loadBookedSeats(); }
+            if(s === 3 && selectedSeats.length === 0) return alert("Pilih minimal 1 kursi!");
+            document.querySelectorAll('.step-container').forEach(x => x.classList.add('hidden')); document.getElementById('step-' + s).classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function changeArmada() { const v = document.querySelector('input[name="armada_radio"]:checked').value; document.getElementById('hiace-container').classList.toggle('hidden', v !== 'HiAce'); document.getElementById('innova-container').classList.toggle('hidden', v !== 'Innova'); loadBookedSeats(); }
+        function toggleAuthMode(m) { document.getElementById('form-login').classList.toggle('hidden', m === 'register'); document.getElementById('form-register').classList.toggle('hidden', m === 'login'); }
+        function actionRegister() { const n = document.getElementById('reg_nama').value; const h = document.getElementById('reg_hp').value; const p = document.getElementById('reg_pass').value; if(!n || !h || !p) return alert("Lengkapi data!"); let dbU = JSON.parse(localStorage.getItem('rt_u') || '{}'); dbU[h] = { nama: n, password: p }; localStorage.setItem('rt_u', JSON.stringify(dbU)); localStorage.setItem('rt_curr', JSON.stringify({ hp: h, nama: n })); checkAuthStatus(); }
+        function actionLogin() { const h = document.getElementById('login_hp').value; const p = document.getElementById('login_pass').value; let dbU = JSON.parse(localStorage.getItem('rt_u') || '{}'); if(dbU[h] && dbU[h].password === p) { localStorage.setItem('rt_curr', JSON.stringify({ hp: h, nama: dbU[h].nama })); checkAuthStatus(); } else alert("Nomor WA atau Sandi Salah!"); }
+        
+        function checkAuthStatus() { const u = localStorage.getItem('rt_curr'); const headerGreeting = document.getElementById('header-greeting'); if(u) { const j = JSON.parse(u); document.getElementById('auth-container').classList.add('hidden'); document.getElementById('profile-container').classList.remove('hidden'); document.getElementById('profile_name').innerText = j.nama; document.getElementById('profile_phone').innerText = "+62 "+j.hp; document.getElementById('nama').value = j.nama; document.getElementById('hp').value = j.hp; if(headerGreeting) headerGreeting.innerText = "Hi, " + j.nama.split(" ")[0] + "!"; fetchLoyaltySettings().then(() => { hitungPoinLoyalty(j.hp); }); } else { document.getElementById('auth-container').classList.remove('hidden'); document.getElementById('profile-container').classList.add('hidden'); if(headerGreeting) headerGreeting.innerText = "Hi, Penumpang!"; } }
+        function actionLogout() { localStorage.removeItem('rt_curr'); checkAuthStatus(); if(document.getElementById('tab-tiket').classList.contains('active')) renderTickets(); }
+
+        async function hitungPoinLoyalty(userHp) {
+            try {
+                const { data: pesanan, error } = await db.from('pesanan').select('kode_booking, kota_asal, kota_tujuan, kursi, kode_voucher').eq('hp', userHp).eq('status', 'Terkonfirmasi'); if (error) throw error;
+                let routePoints = {};
+                pesanan.forEach(p => { if (p.kode_voucher && p.kode_voucher.trim() !== '') return; let mapA = baseMap[p.kota_asal] || p.kota_asal; let mapB = baseMap[p.kota_tujuan] || p.kota_tujuan; let ruteArr = [mapA, mapB].sort(); let ruteKey = ruteArr[0] + "-" + ruteArr[1]; if(!routePoints[ruteKey]) routePoints[ruteKey] = { count: 0, originalRute: `${mapA} ➔ ${mapB}` }; let jmlKursi = p.kursi ? p.kursi.split(',').length : 0; routePoints[ruteKey].count += jmlKursi; });
+                let claimedData = JSON.parse(localStorage.getItem('rt_loyalty_claimed') || '{}'); let loyaltyHtml = '';
+                if (Object.keys(routePoints).length === 0) { loyaltyHtml = `<p class="text-xs text-blue-200 text-center py-2 italic font-medium border border-dashed border-white/20 rounded-xl p-2 bg-black/10">Belum ada pesanan Poin aktif.</p>`; } else {
+                    for (let key in routePoints) { let totalKursi = routePoints[key].count; let sisaPoin = totalKursi % targetPoinLoyalty; let voucherEarned = Math.floor(totalKursi / targetPoinLoyalty); let alreadyClaimed = claimedData[key] || 0; 
+                        if (voucherEarned > alreadyClaimed) { let vouchersToGen = voucherEarned - alreadyClaimed; for(let i=0; i<vouchersToGen; i++) { await buatVoucherLoyalty(key, userHp); } claimedData[key] = voucherEarned; localStorage.setItem('rt_loyalty_claimed', JSON.stringify(claimedData)); }
+                        let progressWidth = (sisaPoin / targetPoinLoyalty) * 100; loyaltyHtml += `<div class="mb-4 last:mb-0 bg-blue-900/30 p-3 rounded-xl border border-white/5"><div class="flex justify-between items-end mb-2"><p class="font-bold text-xs flex items-center gap-1.5"><i class="fas fa-route text-blue-300"></i> ${routePoints[key].originalRute}</p><p class="font-black text-sm flex items-center gap-0.5"><span class="text-yellow-400">${sisaPoin}</span><span class="text-[10px] text-blue-300 font-medium">/${targetPoinLoyalty} Poin</span></p></div><div class="w-full bg-blue-950/80 rounded-full h-2 overflow-hidden shadow-inner"><div class="bg-yellow-400 h-2 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(250,204,21,0.6)]" style="width: ${progressWidth}%"></div></div></div>`;
+                    }
+                } document.getElementById('loyalty-routes-container').innerHTML = loyaltyHtml;
+            } catch (err) {}
+        }
+        async function buatVoucherLoyalty(ruteKey, userHp) { let ruteSplit = ruteKey.split('-'); let ruteBolakBalik = `${ruteSplit[0]}-${ruteSplit[1]}, ${ruteSplit[1]}-${ruteSplit[0]}`; let hargaNormal = normalPrices[`${ruteSplit[0]}-${ruteSplit[1]}`] || normalPrices[`${ruteSplit[1]}-${ruteSplit[0]}`] || 0; let nominalDiskon = hargaNormal * (diskonPersenLoyalty / 100); let kodeBaru = "RST" + diskonPersenLoyalty + "-" + Math.random().toString(36).substring(2, 6).toUpperCase(); const { error } = await db.from('vouchers').insert([{ kode_voucher: kodeBaru, rute_berlaku: ruteBolakBalik, potongan_per_seat: nominalDiskon, kuota: 1, pemilik_hp: userHp }]); if(!error) { alert(`SELAMAT! 🎉\nAnda mencapai poin. Voucher Diskon ${diskonPersenLoyalty}% (Kode: ${kodeBaru}) telah ditambahkan!`); } }
+
+        function openEditProfile() { const curr = JSON.parse(localStorage.getItem('rt_curr') || '{}'); document.getElementById('edit_nama').value = curr.nama || ''; document.getElementById('edit_hp').value = curr.hp || ''; document.getElementById('edit-profile-modal').classList.remove('hidden'); document.getElementById('edit-profile-modal').classList.add('flex'); }
+        function closeEditProfile() { document.getElementById('edit-profile-modal').classList.add('hidden'); document.getElementById('edit-profile-modal').classList.remove('flex'); }
+        function saveProfile() { const n = document.getElementById('edit_nama').value; if(!n) return alert("Nama tidak boleh kosong!"); const curr = JSON.parse(localStorage.getItem('rt_curr') || '{}'); let dbU = JSON.parse(localStorage.getItem('rt_u') || '{}'); dbU[curr.hp].nama = n; localStorage.setItem('rt_u', JSON.stringify(dbU)); localStorage.setItem('rt_curr', JSON.stringify({ hp: curr.hp, nama: n })); checkAuthStatus(); closeEditProfile(); alert("Profil berhasil diperbarui!"); }
+
+        async function openVoucherModal() { document.getElementById('voucher-modal').classList.remove('hidden'); document.getElementById('voucher-modal').classList.add('flex'); const vl = document.getElementById('voucher-list'); vl.innerHTML = '<div class="text-center py-10 text-xs text-slate-500 font-medium"><i class="fas fa-spinner fa-spin text-2xl mb-3 text-blue-600 block"></i>Mencari voucher...</div>'; const currUser = JSON.parse(localStorage.getItem('rt_curr') || '{}'); try { const { data, error } = await db.from('vouchers').select('*').order('created_at', { ascending: false }); if (error) throw error; const activeVouchers = data.filter(v => { if (v.kuota <= 0) return false; if (v.pemilik_hp && v.pemilik_hp !== currUser.hp) return false; return true; }); if (activeVouchers.length === 0) { vl.innerHTML = '<div class="text-center py-10 text-xs text-slate-400 font-bold bg-slate-50 rounded-2xl border border-dashed border-slate-200">Belum ada voucher aktif.</div>'; return; } vl.innerHTML = activeVouchers.map(v => `<div class="bg-white rounded-2xl border shadow-sm p-5 relative overflow-hidden"><div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div><h3 class="font-black text-lg text-blue-900 uppercase break-all mb-2">${v.kode_voucher}</h3><div class="mb-3"><p class="text-xs text-slate-500">Diskon Per Seat</p><p class="font-black text-emerald-600 text-lg">-${formatRupiah(v.potongan_per_seat)}</p></div><div class="bg-slate-50 p-2 rounded-xl border mb-4"><p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Rute Berhak:</p><p class="text-[10px] text-slate-700 leading-tight">${v.rute_berlaku ? v.rute_berlaku.split(',').join('<br>• ') : 'Semua Rute'}</p></div><div class="text-[9px] text-slate-400 mb-2"><i class="fas fa-chair mr-1"></i> Sisa Kuota: ${v.kuota} Seat</div><button onclick="salinVoucher('${v.kode_voucher}')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-xl shadow-md transition hover:bg-blue-700 active:scale-95">Salin Kode Promo</button></div>`).join(''); } catch(e) { vl.innerHTML = '<div class="text-center py-8 text-xs text-red-500 font-bold bg-red-50 rounded-xl">Gagal memuat data.</div>'; } }
+        function closeVoucherModal() { document.getElementById('voucher-modal').classList.add('hidden'); document.getElementById('voucher-modal').classList.remove('flex'); }
+        function salinVoucher(kode) { navigator.clipboard.writeText(kode); alert("Kode " + kode + " disalin!\nTempelkan di halaman pemesanan tiket."); closeVoucherModal(); switchTab('home'); }
+        function openTNCModal() { document.getElementById('tnc-modal').classList.remove('hidden'); document.getElementById('tnc-modal').classList.add('flex'); }
+        function closeTNCModal() { document.getElementById('tnc-modal').classList.add('hidden'); document.getElementById('tnc-modal').classList.remove('flex'); }
+
+        // ================= SISTEM PEMBAYARAN GATEWAY DUITKU (BARU) =================
+        
+        async function prosesBayarDuitku() {
+            const nama = document.getElementById('nama').value.trim();
+            const phone = document.getElementById('hp').value.trim();
+            const jemput = document.getElementById('alamat_jemput').value.trim();
+            const antar = document.getElementById('alamat_antar').value.trim();
+
+            if(!nama || !phone || !jemput || !antar) return alert("Mohon lengkapi data penumpang!");
+
+            const loader = document.getElementById('loader-gateway');
+            loader.style.display = 'flex';
+
+            try {
+                const orderId = "RST-" + Date.now();
+                const bookingData = {
+                    kode_booking: orderId,
+                    kota_asal: document.getElementById('asal').value,
+                    kota_tujuan: document.getElementById('tujuan').value,
+                    tanggal_berangkat: document.getElementById('tanggal').value,
+                    jam_berangkat: document.getElementById('jam').value,
+                    armada: document.querySelector('input[name="armada_radio"]:checked').value,
+                    kursi: selectedSeats.sort((a,b)=>a-b).join(', '),
+                    total_harga: finalTotal,
+                    dp_dibayar: finalDP,
+                    sisa_tagihan: finalSisa,
+                    nama: nama,
+                    hp: phone,
+                    titik_jemput: jemput,
+                    titik_antar: antar,
+                    status: 'Menunggu Pembayaran',
+                    kode_voucher: kodeVoucherAktif
+                };
+
+                // 1. Simpan ke database dengan status PENDING
+                const { error: dbErr } = await db.from('pesanan').insert([bookingData]);
+                if(dbErr) throw dbErr;
+
+                // 2. Panggil Kasir Virtual Supabase Edge Function
+                const response = await fetch('https://dknvpaszoroqzzefjpxf.supabase.co/functions/v1/buat_transaksi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        amount: Math.round(finalDP), // Nominal yang harus dibayar lewat gateway
+                        product_details: `DP Tiket Resta Travel - ${selectedSeats.length} Kursi`,
+                        customer_details: { firstName: nama, phone: phone, email: "penumpang@restatravel.site" },
+                        return_url: window.location.href // Kembali ke sini setelah bayar
+                    })
+                });
+
+                const result = await response.json();
+                if (result.paymentUrl) {
+                    window.location.href = result.paymentUrl; // TERBANG KE HALAMAN BAYAR
+                } else {
+                    throw new Error(result.message || "Gagal membuat transaksi.");
+                }
+
+            } catch (err) {
+                alert("Terjadi kesalahan: " + err.message);
+                loader.style.display = 'none';
+            }
+        }
+
+        // ================= (FUNGSI LAIN TETAP SAMA) =================
+
+        function checkTicketStatus(statusData) { const btn = document.getElementById('download-btn'); const stamp = document.getElementById('t-stamp'); if(statusData !== 'Terkonfirmasi') { btn.disabled = true; btn.classList.remove('bg-blue-600', 'hover:bg-blue-700'); btn.classList.add('bg-slate-300', 'text-slate-500', 'cursor-not-allowed'); btn.innerHTML = 'Menunggu Pembayaran <i class="fas fa-clock ml-1"></i>'; stamp.innerText = 'PROSES BAYAR'; stamp.className = 'absolute -right-4 top-[70%] -translate-y-1/2 -rotate-12 border-[3px] border-red-500 text-red-500 font-black text-xs px-3 py-1 rounded shadow-sm uppercase bg-white/90 backdrop-blur-sm tracking-wide'; } else { btn.disabled = false; btn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed'); btn.classList.add('bg-blue-600', 'hover:bg-blue-700'); btn.innerHTML = 'Download E-Ticket <i class="fas fa-download"></i>'; stamp.innerText = 'DP LUNAS'; stamp.className = 'absolute -right-4 top-[70%] -translate-y-1/2 -rotate-12 border-[3px] border-emerald-500 text-emerald-600 font-black text-xs px-3 py-1 rounded shadow-sm uppercase bg-white/90 backdrop-blur-sm tracking-wide'; } }
+        function closeTicketModal() { document.getElementById('ticket-modal').classList.add('hidden'); }
+        async function renderTickets() { const c = document.getElementById('ticket-list-container'); const emptyState = document.getElementById('empty-ticket-state'); const currUserStr = localStorage.getItem('rt_curr'); if(!currUserStr) { c.innerHTML = ''; emptyState.innerText = 'Silakan masuk ke profil untuk melihat tiket Anda.'; emptyState.classList.remove('hidden'); return; } const currUser = JSON.parse(currUserStr); emptyState.classList.add('hidden'); c.innerHTML = '<div class="text-center text-xs text-slate-500 py-4 font-bold"><i class="fas fa-spinner fa-spin mr-2"></i> Mengambil tiket dari server...</div>'; try { const { data: userTickets, error } = await db.from('pesanan').select('*').eq('hp', currUser.hp).order('created_at', { ascending: false }); if (error) throw error; if (!userTickets || userTickets.length === 0) { c.innerHTML = ''; emptyState.innerText = 'Belum ada pesanan aktif.'; emptyState.classList.remove('hidden'); return; } c.innerHTML = userTickets.map(x => { const statusText = x.status || 'Menunggu Konfirmasi'; const badgeClass = statusText === 'Terkonfirmasi' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-600'; return `<div class="bg-white p-4 border-2 border-slate-100 rounded-2xl shadow-sm"><div class="flex justify-between items-center mb-1"><span class="text-[10px] font-bold text-blue-600 uppercase">${x.tanggal_berangkat || x.tanggal}</span><span class="text-[9px] ${badgeClass} px-2 py-0.5 rounded font-bold uppercase">${statusText}</span></div><h4 class="font-bold text-sm text-slate-800">${x.kota_asal} ➔ ${x.kota_tujuan}</h4><p class="text-[10px] text-slate-500">Seat: ${x.kursi} | Armada: ${x.armada}</p><button onclick='reViewTicket(${JSON.stringify(x)})' class="mt-3 w-full bg-slate-50 text-blue-600 py-2 rounded-xl text-[10px] font-bold border uppercase tracking-wider transition-colors hover:bg-slate-100">Lihat E-Ticket</button></div>`; }).join(''); } catch (err) {} }
+        function reViewTicket(x) { document.getElementById('t-kode').innerText = x.kode_booking || "-"; document.getElementById('t-asal').innerText = x.kota_asal; document.getElementById('t-tujuan').innerText = x.kota_tujuan; document.getElementById('t-nama').innerText = x.nama || "-"; document.getElementById('t-hp').innerText = x.hp || "-"; document.getElementById('t-jadwal').innerText = (x.tanggal_berangkat || x.tanggal) + ' | ' + (x.jam_berangkat || x.jam); let seatCount = x.kursi ? x.kursi.split(',').length : 0; document.getElementById('t-kursi').innerText = 'No. ' + x.kursi + ' (' + seatCount + ' Seat)'; document.getElementById('t-jemput').innerText = x.titik_jemput || "-"; document.getElementById('t-antar').innerText = x.titik_antar || "-"; document.getElementById('t-harga-total').innerText = formatRupiah(x.total_harga || x.total); document.getElementById('t-dp').innerText = formatRupiah(x.dp_dibayar || x.dp); document.getElementById('t-sisa').innerText = formatRupiah(x.sisa_tagihan || x.sisa); checkTicketStatus(x.status || 'Menunggu Pembayaran'); document.getElementById('ticket-modal').classList.remove('hidden'); document.getElementById('ticket-modal').classList.add('flex'); }
+
+        const swiper = new Swiper(".mySwiper", { pagination: { el: ".swiper-pagination", clickable: true }, autoplay: { delay: 4000 }, loop: true });
+        document.getElementById('download-btn').addEventListener('click', function() { if(this.disabled) return; html2canvas(document.getElementById('ticket-content'), { scale: 3 }).then(canvas => { const link = document.createElement('a'); link.download = 'Ticket_RestaTravel.png'; link.href = canvas.toDataURL(); link.click(); }); });
+
+        fetchTarifDinamis().then(() => { loadBanners(); checkAuthStatus(); });
+        document.getElementById('tanggal').min = new Date().toISOString().split("T")[0];
+    </script>
+</body>
+</html>
